@@ -1,7 +1,7 @@
 <h1>bitcoin-node</h1>
 <p>A project use node to operate user's bitcoind.</p>
 
-<h2>Installation<h2>
+<h2>Installation</h2>
 <p>After download the project and installing node, type the following command in project's folder.</p>
 <pre>
     <code>node app.js</code>
