@@ -1,0 +1,58 @@
+body {
+  padding: 20px 0 10px 0;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+div{
+	float: left;
+	text-align: center;
+}
+
+li{
+	list-style-type: none;
+	padding-left: 30px;
+}
+a {
+  color: #00B7FF;
+}
+
+.center{
+	text-align: center;
+}
+.left{
+	text-align: left;
+}
+.right{
+	text-align: right;
+}
+.width200{
+	width: 200px;
+}
+
+/* 首页提交初始化信息的div。 */
+#infoToSub{
+	float: center;
+	width: 100%;
+	height: 40px;
+}
+#infoToSub ul{
+	width: 600px;
+	float: center;
+}
+#infoToSub ul li{
+	width: 100%;
+	height: 40px;
+}
+#infoToSub ul li label{
+	width: 200px;
+	float: left;
+	line-height: 30px;
+	text-align: right;	
+}
+
+/* 功能列表页码，展示新获取的钱包地址和私钥。 */
+.showWallet{
+	width: 100%;
+	float: left;
+	text-align: left;
+	padding: 10px 0 10px 20px;
+}

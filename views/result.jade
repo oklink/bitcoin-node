@@ -1,0 +1,22 @@
+extends layout
+
+block content
+    script(type="text/javascript").
+        var result = "#{result}";
+        var message = "#{message}";
+        var from = "#{from}";
+        
+        if(from == "import"){
+            if(result || result == "true"){
+                alert("钱包已导入成功！");
+                window.close();                
+            } 
+            if(message == "needinit"){
+                alert("请重新连接后使用！");
+            } else if(message == "uploadfail"){
+                alert("文件上传失败！");
+            } else if(message == "importfail"){
+                alert("文件导入失败！");
+            }
+            window.close();
+        }
