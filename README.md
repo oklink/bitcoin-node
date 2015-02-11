@@ -2,9 +2,9 @@
 <p>A project use node to operate user's bitcoind.</p>
 
 <h2>Installation</h2>
-<p>After download the project and installing node, type the following command in project's folder.</p>
+<p>bitcoin-node runs on node, After download the project and installing npm, type the following command in project's folder.</p>
 <pre>
-    <code>node app.js</code>
+    <code>npm install</code>
 </pre>
 
 <h2>License</h2>

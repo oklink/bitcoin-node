@@ -6,7 +6,7 @@ var sysconfig = require("./sysconfig");
 // 文件上传模块。
 var formidable = require("formidable");
 // RPC调用bitcoind模块。
-var RpcClient = require("bitcoind-rpc");
+var RpcClient = require("./bitcoind-rpc");
 // pdf文件生成模块。
 var PDFDocument = require("pdfkit");
 // 二维码生成模块。
