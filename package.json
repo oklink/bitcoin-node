@@ -2,6 +2,16 @@
   "name": "bitcoin-node",
   "version": "1.0.0",
   "private": true,
+  "keywords": [
+    "bitcoin",
+    "node"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/oklink/bitcoin-node"
+  },
+  "license": "MIT",
+  "main": "app.js",
   "scripts": {
     "start": "node ./bin/www"
   },
@@ -19,5 +29,6 @@
     "chai": "^1.10.0",
     "istanbul": "^0.3.5",
     "mocha": "^2.1.0"
-  }
+  },
+  "homepage": "https://github.com/oklink/bitcoin-node"
 }
