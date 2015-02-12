@@ -11,7 +11,7 @@
 <pre>
     <code>node app.js</code>
 </pre>
-<p>Then you can visit <a href="http://127.0.0.1:3000">http://127.0.0.1:3000</a></p>
+<p>Then you can visit <a href="http://127.0.0.1:3000" target="_blank">http://127.0.0.1:3000</a></p>
 
 <h2>License</h2>
 <p>Released under the MIT license.</p>
