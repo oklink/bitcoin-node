@@ -2,15 +2,15 @@ extends layout
 block content
     h2.center 欢迎使用
     
-    ul 使用须知：
-        li 1. 使用本系统，需要手动启动本地的bitcoind程序，且在bitcoin.conf文件中打开RPC功能（server=1）。
-        li 2. 如果使用bitcoin-qt启动，则该文件在指定的blocks存储目录中。
-        li 3. 如果单独启动bitcoind，则该文件在如下目录中：~\AppData\Roaming\Bitcoin。
-        li 4. 如果要连接指定IP地址上的bitcoind，则该IP指定的机器上的配置文件需要做以上调整，且在rpcallowip中加入本机地址。
+    div(style="text-align: left;")
+        ul 使用须知：
+            li 1. 使用本系统，需要手动启动本地的bitcoind程序，且在bitcoin.conf文件中打开RPC功能（server=1）。
+            li 2. 如果使用bitcoin-qt启动，则该文件在指定的blocks存储目录中。
+            li 3. 如果单独启动bitcoind，则该文件在如下目录中：~\AppData\Roaming\Bitcoin。
+            li 4. 如果要连接指定IP地址上的bitcoind，则该IP指定的机器上的配置文件需要做以上调整，且在rpcallowip中加入本机地址。
     
-    #infoToSub
-       
-       p 请在下方表单中提交本地bitcoind的rpc配置信息。        
+    #infoToSub       
+       p(style="margin: 20px 0 10px 0; font-size: 26px;") 请在下方表单中提交本地bitcoind的rpc配置信息。        
        ul
            li
                label RPC用户名：

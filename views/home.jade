@@ -1,78 +1,78 @@
 extends layout
 block content
-    h2 连接信息：
-    table.table
-        tr
-            th balance
-            td=netinfo.balance
-            th paytxfee
-            td=netinfo.paytxfee
-            - var relayfee = netinfo.relayfee
-            - var mininput = netinfo.mininput
-            if relayfee
-                th relayfee
-                td=netinfo.relayfee
-            else if mininput
-                th mininput
-                td=netinfo.mininput
-            else
+    h2(style="padding-left: 40px;") 连接信息：
+    div
+        table(style="width: 90%; margin: 0 auto;").table
+            tr
+                th balance
+                td=netinfo.balance
+                th paytxfee
+                td=netinfo.paytxfee
+                - var relayfee = netinfo.relayfee
+                - var mininput = netinfo.mininput
+                if relayfee
+                    th relayfee
+                    td=netinfo.relayfee
+                else if mininput
+                    th mininput
+                    td=netinfo.mininput
+                else
+                    th
+                    td
+            tr
+                th version
+                td=netinfo.version
+                th protocolversion
+                td=netinfo.protocolversion
+                th walletversion
+                td=netinfo.walletversion
+            tr
+                th blocks
+                td=netinfo.blocks
+                th testnet
+                td=netinfo.testnet      
+                th connections
+                td=netinfo.connections
+            tr
+                th difficulty
+                td=netinfo.difficulty
+                th timeoffset
+                td=netinfo.timeoffset
+                th proxy
+                td=netinfo.proxy
+            tr
+                th keypoololdest
+                td=netinfo.keypoololdest
+                th keypoolsize
+                td=netinfo.keypoolsize
                 th
                 td
-        tr
-            th version
-            td=netinfo.version
-            th protocolversion
-            td=netinfo.protocolversion
-            th walletversion
-            td=netinfo.walletversion
-        tr
-            th blocks
-            td=netinfo.blocks
-            th testnet
-            td=netinfo.testnet      
-            th connections
-            td=netinfo.connections
-        tr
-            th difficulty
-            td=netinfo.difficulty
-            th timeoffset
-            td=netinfo.timeoffset
-            th proxy
-            td=netinfo.proxy
-        tr
-            th keypoololdest
-            td=netinfo.keypoololdest
-            th keypoolsize
-            td=netinfo.keypoolsize
-            th
-            td
-        tr
-            td(colspan="6")
+            tr
+                td(colspan="6")
 
-    
-    h2 功能列表：
-    div(style="width: 100%;")
-        p
-            a(class="btn btn-primary", data-toggle="collapseCustom", href="#viewWallets", aria-expanded="true", aria-controls="viewWallets") 已有钱包
-            a(class="btn btn-primary", data-toggle="collapseCustom", href="#newWallet", aria-expanded="true", aria-controls="newWallet") 新的私钥和地址
-            a(class="btn btn-primary", data-toggle="collapseCustom", href="#walletBackup", aria-expanded="true", aria-controls="walletBackup") 钱包备份
-            a(class="btn btn-primary", data-toggle="collapseCustom", href="#walletImport", aria-expanded="true", aria-controls="walletImport") 钱包导入
+    h2(style="width: 100%; padding-left: 40px; clear: both;") 功能列表：
+    div
+        p(style="width: 90%; margin: 10px auto;")
+            a(class="btn btn-primary", style="margin: 0 10px 0 10px;", data-toggle="collapseCustom", href="#viewWallets", aria-expanded="true", aria-controls="viewWallets") 已有钱包
+            a(class="btn btn-primary", style="margin: 0 10px 0 10px;", data-toggle="collapseCustom", href="#newWallet", aria-expanded="true", aria-controls="newWallet") 新的私钥和地址
+            a(class="btn btn-primary", style="margin: 0 10px 0 10px;", data-toggle="collapseCustom", href="#walletBackup", aria-expanded="true", aria-controls="walletBackup") 钱包备份
+            a(class="btn btn-primary", style="margin: 0 10px 0 10px;", data-toggle="collapseCustom", href="#walletImport", aria-expanded="true", aria-controls="walletImport") 钱包导入
         
-        div(style="padding-left: 20px; width: 100%;")
-            div(class="collapse", id="viewWallets", style="width: 100%;" aria-expanded="false")
-                div(style="width: 80%;").well.left
+        div(style="width: 90%;")
+            div(class="collapse", id="viewWallets", style="margin: 0px auto;" aria-expanded="false")
+                div.well.left
                     form(id="walletViewForm", method="get", action="/wallets", target="_blank")
                         input(type="submit", id="walletView", value="查看").btn.btn-primary                   
-            div(class="collapse", id="newWallet", style="width: 100%;", aria-expanded="false")
-                div.well(style="text-align: left; width: 80%;")
+            div(class="collapse", id="newWallet", aria-expanded="false")
+                div.well(style="text-align: left;")
                     input(type="button", id="getNewWalletBtn", value="获取").btn.btn-primary
                     #showWallet.showWallet
-            div(class="collapse", id="walletBackup", style="width: 100%;", aria-expanded="false")
-                div(style="width: 80%;").well.left
+            div(class="collapse", id="walletBackup", aria-expanded="false")
+                div.well.left
                     form(id="walletBackupForm", method="post", action="/backup", target="_blank")
                         input(type="submit", id="backupWallet", value="备份").btn.btn-primary
-            div(class="collapse", id="walletImport", style="width: 100%;", aria-expanded="false")
-                div(style="width: 80%;").well.left
+            div(class="collapse", id="walletImport", aria-expanded="false")
+                div.well.left
                     form(id="walletImportForm", method="post", action="/import", enctype="multipart/form-data", target="_blank")
                         input(type="file", name="wallet", id="wallet") 
                         input(type="submit", id="backupWallet", value="导入").btn.btn-primary

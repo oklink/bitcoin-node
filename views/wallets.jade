@@ -1,34 +1,35 @@
 extends layout
 block content
-    div(style="width:90%").right
-        a(href="#", onclick="window.location.href='/home';") 返回
-    h2 钱包信息：【总金额：#{amount}】
-    table.table.table-hover
-        thead
-            tr
-                th.center 
-                    input(type="checkbox", id="selectAll")
-                th.center 组号
-                th.center 序号
-                th.center 地址
-                th.center 余额
-        tbody           
-            each val, index in walletList.length ? walletList : ["没有读取到钱包信息！"]
-                tr.center  
-                    td 
-                        input(type="checkbox", name="walletIdSel", value="#{val.address}")
-                    td=val.group
-                    td=val.idx
-                    td=val.address
-                    td.right=val.amount                   
-            tr
-                td(colspan="2")
-                    a(href="#", id="seledToExport") 导出已选
-                td(colspan="3").right 
-                    b 合计：#{amount}
+    div(style="width:90%;").right
+        a(href="#", onclick="window.location.href='/home';") 返回    
+    h2(style="padding-left: 40px;") 钱包信息：【总金额：#{amount}】
+    div
+        table(style="width: 90%; margin: 0 auto;").table.table-hover
+            thead
+                tr
+                    th.center 
+                        input(type="checkbox", id="selectAll")
+                    th.center 组号
+                    th.center 序号
+                    th.center 地址
+                    th(style="padding-right: 30px;").center 余额
+            tbody           
+                each val, index in walletList.length ? walletList : ["没有读取到钱包信息！"]
+                    tr.center  
+                        td 
+                            input(type="checkbox", name="walletIdSel", value="#{val.address}")
+                        td=val.group
+                        td=val.idx
+                        td=val.address
+                        td.right=val.amount                   
+                tr
+                    td(colspan="2")
+                        a(href="#", id="seledToExport") 导出已选
+                    td(colspan="3", style="padding-right: 30px;").right 
+                        b 合计：#{amount}
 
-    form(name="exportSelWallet", method="post", action="/wallet/exportsel", id="exportSelWallet", target="_blank")
-        input(type="hidden", name="idsSelected", id="idsSelected")
+        form(name="exportSelWallet", method="post", action="/wallet/exportsel", id="exportSelWallet", target="_blank")
+            input(type="hidden", name="idsSelected", id="idsSelected")
 
 
 

@@ -3,8 +3,9 @@ body {
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 div{
-	float: left;
-	text-align: center;
+	width: 100%; 
+	text-align: center; 
+	margin: 0px auto;	
 }
 
 li{
@@ -31,19 +32,21 @@ a {
 /* 首页提交初始化信息的div。 */
 #infoToSub{
 	float: center;
-	width: 100%;
+	width: 90%;
 	height: 40px;
 }
 #infoToSub ul{
-	width: 600px;
+	width: 100%;
 	float: center;
+	padding-left: 0px;
 }
 #infoToSub ul li{
 	width: 100%;
 	height: 40px;
+	padding-left: 0px;
 }
 #infoToSub ul li label{
-	width: 200px;
+	width: 40%;
 	float: left;
 	line-height: 30px;
 	text-align: right;	
