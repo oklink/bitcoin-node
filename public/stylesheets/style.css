@@ -54,8 +54,7 @@ a {
 
 /* 功能列表页码，展示新获取的钱包地址和私钥。 */
 .showWallet{
-	width: 100%;
-	float: left;
+	width: 90%;
+	float: right;
 	text-align: left;
-	padding: 10px 0 10px 20px;
 }

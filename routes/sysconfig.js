@@ -24,13 +24,24 @@ var sysconfig = {
 	isInit : false,
 	config : {
 		protocol: 'http',
-		user: 'bitcoinrpc',
-		pass: 'aaa111!!!',
+		user: 'rpcusername',
+		pass: 'rpcpassword',
 		host: '127.0.0.1',
 		port: '8332',
 	},
+	// 生成二维码时使用的配置。
+	qrconfig : {
+		ec_level: 'H',
+		type: 'png', 
+		size: 3,
+		margin: 1
+	}, 
+	// pdf中二维码图片的大小。
+	imagesize : {
+		width : 120,
+		height : 120
+	},
 	getDateStr:getDateStr
 }
-
 
 module.exports = sysconfig;

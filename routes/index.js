@@ -1,4 +1,3 @@
-var express = require("express");
 // 文件操作模块。
 var fs = require("fs");
 // 项目配置和工具方法。
@@ -10,8 +9,9 @@ var RpcClient = require("./bitcoind-rpc");
 // pdf文件生成模块。
 var PDFDocument = require("pdfkit");
 // 二维码生成模块。
-// var qrcode = require("qrcode");
+var qrimage = require("qr-image");
 
+var express = require("express");
 var router = express.Router();
 var rpc = null;
 
@@ -172,13 +172,13 @@ router.post("/wallet/exportsel", function(req, res, next){
 		res.send(JSON.stringify(result));
 		return false;
 	}
-	var ids = req.body.idsSelected;
-	console.log(ids);
+	var ids = req.body.idsSelected;	
 	if(ids.trim().length == 0){
 		result.message = "idneeded";
 		res.send(JSON.stringify(result));
 		return false;
 	}
+
 	var id_arr = ids.split(",");	
 	var id_len = id_arr.length;
 	var todump = [];
@@ -186,6 +186,7 @@ router.post("/wallet/exportsel", function(req, res, next){
 		getKeyByAddress(id_arr[i], todump, id_len, res);
 	}		
 });
+
 /**
  * 根据地址获取密钥，成功后调用后续步骤。
  */
@@ -196,26 +197,14 @@ function getKeyByAddress(address, todump, id_len, res){
 			result.message = "idneeded";
 			res.send(JSON.stringify(result));
 			return false;
-		}		
+		}			
 		// 先放置假的图片。
 		var obj = {
 			key : ret.result,
-			addr: address,
-			keyqr: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKwAAACsCAYAAADmMUfYAAAABmJLR0QA/wD/AP+gvaeTAAAEaklEQVR4nO3dQW4jIRAF0PFo7n9lzzbqRRCiCvj2e9u4253kC5VoKF7v9/v9B0L8Pf0AMENgiSKwRBFYoggsUQSWKAJLFIElisASRWCJIrBEEViiCCxRBJYoAksUgSWKwBJFYIkisET5V33D1+tVfctfjbakPZ/n+fnRz2fN3m/17zX7+9z2/5llhCWKwBJFYIlSXsM+VdcwoxrsdM26+vnu5x1936ruGtkISxSBJYrAEqW9hn2arXG6a8zqmmv2eXfP+87eb2R3azYjLFEEligCS5TtNexps+/WZz8/e7/Z63fPM9/GCEsUgSWKwBLl62rY6vWq3fOe3etp0xhhiSKwRBFYomyvYXfPC47mKUc17er1s8/3VD1PvPo8pxlhiSKwRBFYorTXsLfPE66+i1/tC3C6r8Dt/58nIyxRBJYoAkuU8hr29Dxed81XvT622mzNncYISxSBJYrAEuV4X4LT/VNP98Za7QOw+/rZ+1czwhJFYIkisERpP+NgtL50dP1Tdw23ev/umrv7frf1+noywhJFYIkisER5vYuLjN17kEa65wVP76E63TdhRA3LVxNYoggsUa5fD7t6lmz356vndatr0ur7nT671ghLFIElisASZXtfgtkacPZ+s5+v7s/a3cdg9vmeVtcDn2aEJYrAEkVgiXLdGQe7z51a3fNVXeOu3r9b99qFESMsUQSWKAJLlPL1sMMvLF4vW91/ddbqnrLV+81+X/Xf88meLvhBYIkisETZvqfr6XSNNbJ7T9ju/q3dfQ/UsHw1gSWKwBIlbi3Baq+r6vW3p/swdPcNqF6fvMoISxSBJYrAEqW9hq2uSbv7l1b//PSeqdnnm+3nu5sRligCSxSBJcrHrYdd/f6R3X0Nqs9gGLl9LYYRligCSxSBJUr7OV3VTp/TVb2WIa0X1+k+CUZYoggsUQSWKO17uk6fQ7V7n//uPgmn52F3rzUwwhJFYIkisERpP6eruz/qqu6atNrpPWbd874jRliiCCxRBJYo29cSdL/7n71+9fMju8/erf7+030XnoywRBFYoggsUbbv6RrZveerer1n956o2/oc7GaEJYrAEkVgiXLdnq7qffyj60dOr6ddvV83awngFwJLFIElynXzsKtu20d/eo/X7XvEZhlhiSKwRBFYolw3Dzur+t3/6f6nt/XKOl0DPxlhiSKwRBFYomw/p2vV6bNaq9/dr9bY3TV397zxLCMsUQSWKAJLlPYa9qm75uqu0XbXdN018shtS02MsEQRWKIILFG217C7zZ6Ttfru/vSZC6PvO70+eJURligCSxSBJcrH1bCrNdvqPOys1bUJt/Uh6F5bYIQlisASRWCJsr2G3X3u1qzT/WK7e4utOr22wAhLFIElisASpb2Gvf3d9GrN2L3Hq/rdf/fzmYeFHwSWKAJLlI/rD8tnM8ISRWCJIrBEEViiCCxRBJYoAksUgSWKwBJFYIkisEQRWKIILFEEligCSxSBJYrAEkVgiSKwRPkPWT7LmXeavQIAAAAASUVORK5CYII=",
-			addrqr: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKwAAACsCAYAAADmMUfYAAAABmJLR0QA/wD/AP+gvaeTAAAEaklEQVR4nO3dQW4jIRAF0PFo7n9lzzbqRRCiCvj2e9u4253kC5VoKF7v9/v9B0L8Pf0AMENgiSKwRBFYoggsUQSWKAJLFIElisASRWCJIrBEEViiCCxRBJYoAksUgSWKwBJFYIkisET5V33D1+tVfctfjbakPZ/n+fnRz2fN3m/17zX7+9z2/5llhCWKwBJFYIlSXsM+VdcwoxrsdM26+vnu5x1936ruGtkISxSBJYrAEqW9hn2arXG6a8zqmmv2eXfP+87eb2R3azYjLFEEligCS5TtNexps+/WZz8/e7/Z63fPM9/GCEsUgSWKwBLl62rY6vWq3fOe3etp0xhhiSKwRBFYomyvYXfPC47mKUc17er1s8/3VD1PvPo8pxlhiSKwRBFYorTXsLfPE66+i1/tC3C6r8Dt/58nIyxRBJYoAkuU8hr29Dxed81XvT622mzNncYISxSBJYrAEuV4X4LT/VNP98Za7QOw+/rZ+1czwhJFYIkisERpP+NgtL50dP1Tdw23ev/umrv7frf1+noywhJFYIkisER5vYuLjN17kEa65wVP76E63TdhRA3LVxNYoggsUa5fD7t6lmz356vndatr0ur7nT671ghLFIElisASZXtfgtkacPZ+s5+v7s/a3cdg9vmeVtcDn2aEJYrAEkVgiXLdGQe7z51a3fNVXeOu3r9b99qFESMsUQSWKAJLlPL1sMMvLF4vW91/ddbqnrLV+81+X/Xf88meLvhBYIkisETZvqfr6XSNNbJ7T9ju/q3dfQ/UsHw1gSWKwBIlbi3Baq+r6vW3p/swdPcNqF6fvMoISxSBJYrAEqW9hq2uSbv7l1b//PSeqdnnm+3nu5sRligCSxSBJcrHrYdd/f6R3X0Nqs9gGLl9LYYRligCSxSBJUr7OV3VTp/TVb2WIa0X1+k+CUZYoggsUQSWKO17uk6fQ7V7n//uPgmn52F3rzUwwhJFYIkisERpP6eruz/qqu6atNrpPWbd874jRliiCCxRBJYo29cSdL/7n71+9fMju8/erf7+030XnoywRBFYoggsUbbv6RrZveerer1n956o2/oc7GaEJYrAEkVgiXLdnq7qffyj60dOr6ddvV83awngFwJLFIElynXzsKtu20d/eo/X7XvEZhlhiSKwRBFYolw3Dzur+t3/6f6nt/XKOl0DPxlhiSKwRBFYomw/p2vV6bNaq9/dr9bY3TV397zxLCMsUQSWKAJLlPYa9qm75uqu0XbXdN018shtS02MsEQRWKIILFG217C7zZ6Ttfru/vSZC6PvO70+eJURligCSxSBJcrH1bCrNdvqPOys1bUJt/Uh6F5bYIQlisASRWCJsr2G3X3u1qzT/WK7e4utOr22wAhLFIElisASpb2Gvf3d9GrN2L3Hq/rdf/fzmYeFHwSWKAJLlI/rD8tnM8ISRWCJIrBEEViiCCxRBJYoAksUgSWKwBJFYIkisEQRWKIILFEEligCSxSBJYrAEkVgiSKwRPkPWT7LmXeavQIAAAAASUVORK5CYII="
+			addr: address
 		}
-//		qrcode.toDataURL(ret.result, function(err, url){
-//			obj.keyqr = url;
-			
-//			qrcode.toDataURL(addr, function(err, url){
-//				obj.addrqr = url;
-				
-//				todump.push(obj);				
-//				if(todump.length == id_len){
-//					dealKeyDump(todump, res);			
-//				}	
-//			});
-//		});
+		obj.keyqr = qrimage.imageSync(obj.key, sysconfig.qrconfig);
+		obj.addrqr = qrimage.imageSync(obj.addr, sysconfig.qrconfig);
 	
 		todump.push(obj);
 		if(todump.length == id_len){
@@ -231,9 +220,11 @@ function dealKeyDump(todump, res){
 	var path = process.cwd() + "/temp/download/";
 	var fileName = sysconfig.getDateStr() +".pdf";
 	
-	var doc = new PDFDocument();	
+	var doc = new PDFDocument();
+	// doc.info["Title"] = "Wallet Info";	
+
 	var writableStream = doc.pipe(fs.createWriteStream(path + fileName));	
-	var x = 30; // pdf中的横坐标，即缩进。
+	var x = 50; // pdf中的横坐标，即缩进。
 	for(var i = 0, len = todump.length; i < len; i += 2){	
 		if(i != 0){
 			doc.addPage();
@@ -241,26 +232,26 @@ function dealKeyDump(todump, res){
 		var info1 = todump[i];
 		var info2 = todump[i + 1];
 
-		doc.moveTo(x, 40).lineTo(540, 40).stroke(); // text(sep, x, 40);
-		doc.image(info1.addrqr, x, 50);
-		doc.text("Address: " + info1.addr, 210, 120);
+		doc.moveTo(x, 40).lineTo(550, 40).stroke(); // text(sep, x, 40);
+		doc.image(info1.addrqr, x, 60, sysconfig.imagesize);
+		doc.text("Address: " + info1.addr, 210, 110);
 
-		doc.image(info1.keyqr, x, 190);
+		doc.image(info1.keyqr, x, 210, sysconfig.imagesize);
 		doc.text("Key:" + info1.key, 210, 250);
 		 
-		doc.moveTo(x, 350).lineTo(540, 350).stroke();	
+		doc.moveTo(x, 350).lineTo(550, 350).stroke();	
 
 		if(info2 == null || info2 == undefined){
 			break;
 		}
 
-		doc.image(info2.addrqr, x, 360);
+		doc.image(info2.addrqr, x, 370, sysconfig.imagesize);
 		doc.text("Address: " + info2.addr, 210, 420);
 
-		doc.image(info2.keyqr, x, 500);
+		doc.image(info2.keyqr, x, 520, sysconfig.imagesize);
 		doc.text("Key:" + info2.key, 210, 560);
 		   
-		doc.moveTo(x, 660).lineTo(540, 660).stroke();		
+		doc.moveTo(x, 660).lineTo(550, 660).stroke();		
 	}
 	doc.end();
 
@@ -280,10 +271,7 @@ function dealKeyDump(todump, res){
 		});
 		downstream.on("error", function(err){
 			console.log(err);
-		});		
-
-		// 删除生成的各个二维码文件。
-
+		});
 	});
 }
 
