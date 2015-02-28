@@ -21,15 +21,20 @@ block content
                         td=val.group
                         td=val.idx
                         td=val.address
-                        td.right=val.amount                   
+                        td(style="padding-right: 30px;").right=val.amount                   
                 tr
-                    td(colspan="2")
-                        a(href="#", id="seledToExport") 导出已选
-                    td(colspan="3", style="padding-right: 30px;").right 
+                    td(colspan="5", style="padding-right: 30px;").right
+                        div(style="float: left; width: 80%; text-align: left; ")
+                            a(href="#", id="seledToExport", style="margin: 0 20px 0 30px;") 导出已选                    
+                            input(type="checkbox", id="exportPassed")
+                            label(for="exportPassed", style="margin: 0 10px 0 5px;") 加密                            
+                            label(id="passLabel", style="font-weight: normal; display: none;") 密码（请自行记录）：
+                            input(type="password", id="passText", style="display: none;") 
                         b 合计：#{amount}
 
         form(name="exportSelWallet", method="post", action="/wallet/exportsel", id="exportSelWallet", target="_blank")
             input(type="hidden", name="idsSelected", id="idsSelected")
+            input(type="hidden", name="pass", id="passHidden")
 
 
 

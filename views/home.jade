@@ -55,8 +55,9 @@ block content
         p(style="width: 90%; margin: 10px auto;")
             a(class="btn btn-primary", style="margin: 0 10px 0 10px;", data-toggle="collapseCustom", href="#viewWallets", aria-expanded="true", aria-controls="viewWallets") 已有钱包
             a(class="btn btn-primary", style="margin: 0 10px 0 10px;", data-toggle="collapseCustom", href="#newWallet", aria-expanded="true", aria-controls="newWallet") 新的私钥和地址
-            a(class="btn btn-primary", style="margin: 0 10px 0 10px;", data-toggle="collapseCustom", href="#walletBackup", aria-expanded="true", aria-controls="walletBackup") 钱包备份
-            a(class="btn btn-primary", style="margin: 0 10px 0 10px;", data-toggle="collapseCustom", href="#walletImport", aria-expanded="true", aria-controls="walletImport") 钱包导入
+            if isLocal
+                a(class="btn btn-primary", style="margin: 0 10px 0 10px;", data-toggle="collapseCustom", href="#walletBackup", aria-expanded="true", aria-controls="walletBackup") 钱包备份
+                a(class="btn btn-primary", style="margin: 0 10px 0 10px;", data-toggle="collapseCustom", href="#walletImport", aria-expanded="true", aria-controls="walletImport") 钱包导入
         
         div(style="width: 90%;")
             div(class="collapse", id="viewWallets", style="margin: 0px auto;" aria-expanded="false")
@@ -67,12 +68,13 @@ block content
                 div.well(style="text-align: left;")
                     input(type="button", id="getNewWalletBtn", value="获取").btn.btn-primary
                     #showWallet.showWallet
-            div(class="collapse", id="walletBackup", aria-expanded="false")
-                div.well.left
-                    form(id="walletBackupForm", method="post", action="/backup", target="_blank")
-                        input(type="submit", id="backupWallet", value="备份").btn.btn-primary
-            div(class="collapse", id="walletImport", aria-expanded="false")
-                div.well.left
-                    form(id="walletImportForm", method="post", action="/import", enctype="multipart/form-data", target="_blank")
-                        input(type="file", name="wallet", id="wallet") 
-                        input(type="submit", id="backupWallet", value="导入").btn.btn-primary
+            if isLocal
+                div(class="collapse", id="walletBackup", aria-expanded="false")
+                    div.well.left
+                        form(id="walletBackupForm", method="post", action="/backup", target="_blank")
+                            input(type="submit", id="backupWallet", value="备份").btn.btn-primary
+                div(class="collapse", id="walletImport", aria-expanded="false")
+                    div.well.left
+                        form(id="walletImportForm", method="post", action="/import", enctype="multipart/form-data", target="_blank")
+                            input(type="file", name="wallet", id="wallet") 
+                            input(type="submit", id="backupWallet", value="导入").btn.btn-primary

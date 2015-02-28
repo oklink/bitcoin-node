@@ -1,11 +1,13 @@
+// 项目配置和工具方法。
+var sysConfig = require("../lib/sysconfig");
+var tools = require("../lib/tools");
+// RPC调用bitcoind模块。
+var RpcClient = require("../lib/bitcoind-rpc");
+
 // 文件操作模块。
 var fs = require("fs");
-// 项目配置和工具方法。
-var sysconfig = require("./sysconfig");
 // 文件上传模块。
 var formidable = require("formidable");
-// RPC调用bitcoind模块。
-var RpcClient = require("./bitcoind-rpc");
 // pdf文件生成模块。
 var PDFDocument = require("pdfkit");
 // 二维码生成模块。
@@ -13,15 +15,15 @@ var qrimage = require("qr-image");
 
 var express = require("express");
 var router = express.Router();
-var rpc = null;
 
 /** 首页，已经初始化则直接进入菜单页。 */
-router.get('/', function(req, res, next) {	
-	if(sysconfig.isInit && rpc != null){
+router.get("/", function(req, res, next) {
+	var userInfo = req.session.userInfo;
+	if(userInfo != null && userInfo.isInit){
 		res.redirect("/home");
-		return true;
-	}
-	res.render('index', {title: sysconfig.title});
+		return false;
+	}	
+	res.render("index", {title: sysConfig.title});
 });
 
 /**
@@ -32,31 +34,32 @@ router.post("/init", function(req, res, next){
 	var password = req.body.rpcpassword;
 	var rpcip = req.body.rpcip;
 	var port = req.body.rpcport;
+
+	var userInfo = sysConfig.getUserInfo({
+		user: user, 
+		password: password, 
+		rpcip: rpcip,
+		port: port
+	});
 	
 	var initResult = {result: "false"};
-	if(user.trim().length == 0 || password.trim().length == 0 || port.trim().length == 0){
+	if(userInfo == null){
 		initResult.resInfo = "paramneed";
 		res.send(JSON.stringify(initResult)); 
 		return false;
 	}	
-
-	var config = sysconfig.config;
-	config.user = user.trim();
-	config.pass = password.trim();
-	config.port = port.trim();
-	if(rpcip.trim().length != 0){
-		config.host = rpcip;
-	}
-
-	rpc = new RpcClient(config);
+	
+	var rpc = new RpcClient(userInfo.config);
     rpc.getInfo(function(err, ret){
 		if(err){
-			sysconfig.isInit = false;
+			userInfo.isInit = false;
 			initResult.resInfo = "error";
 			res.send(JSON.stringify(initResult));
 			return false;
 		}	
-		sysconfig.isInit = true;
+		userInfo.isInit = true;
+		req.session.userInfo = userInfo;
+
 		initResult.result = "true";		
 		res.send(JSON.stringify(initResult));				
 	});    
@@ -65,34 +68,32 @@ router.post("/init", function(req, res, next){
 /**
  * 项目功能列表页面。展示网络信息和功能入口。
  */
-router.get("/home", function(req, res, next){
-	if(!sysconfig.isInit || rpc == null){
-		res.redirect("/");
-		return true;
-	}
-
+router.get("/home", sysConfig.filter, function(req, res, next){	
+	var userInfo = req.session.userInfo;	
+	var rpc = new RpcClient(userInfo.config);
 	rpc.getInfo(function(err, ret){
 		if(err){			
-			sysconfig.isInit = false;
+			userInfo.isInit = false;
 			res.redirect("/");
 			return false;
 		}				
-		res.render("home", {title : sysconfig.title, netinfo : ret.result});
+		res.render("home", {
+			title : sysConfig.title, 
+			netinfo : ret.result,
+			isLocal: userInfo.isLocal
+		});
 	});  
 });
 
 /**
  * 按组获取用户所有的钱包地址和余额。
  */
-router.get("/wallets", function(req, res, next){
-	if(!sysconfig.isInit || rpc == null){
-		res.redirect("/");
-		return true;
-	}
-
+router.get("/wallets", sysConfig.filter, function(req, res, next){
+	var userInfo = req.session.userInfo;	
+	var rpc = new RpcClient(userInfo.config);
 	rpc.listAddressGroupings(function(err, ret){
 		if(err){			
-			sysconfig.isInit = false;
+			userInfo.isInit = false;
 			res.redirect("/");
 			return false;
 		}
@@ -116,7 +117,7 @@ router.get("/wallets", function(req, res, next){
 				amount += temp[1];
 			}
 		}			
-		res.render("wallets", {title: sysconfig.title, walletList:walletList, amount:amount});
+		res.render("wallets", {title: sysConfig.title, walletList:walletList, amount:amount});
 	});
 });
 
@@ -124,16 +125,18 @@ router.get("/wallets", function(req, res, next){
 router.get("/newallet", function(req, res, next){
 	var walletInfo = {};
 	walletInfo.result = "false";
-
-	if(!sysconfig.isInit || rpc == null){
+	
+	var userInfo = req.session.userInfo;
+	if(userInfo == null || !userInfo.isInit){
 		walletInfo.resInfo = "needInit";
 		res.send(JSON.stringify(walletInfo));
 		return false;
 	}
-
+	
+	var rpc = new RpcClient(userInfo.config);
 	rpc.getNewAddress(function(err, ret){
 		if(err){			
-			sysconfig.isInit = false;
+			sysConfig.isInit = false;
 			walletInfo.resInfo = "needInit";
 			res.send(JSON.stringify(walletInfo));
 			return false;
@@ -144,7 +147,7 @@ router.get("/newallet", function(req, res, next){
 
 		rpc.dumpPrivKey(address, function(err, kret){
 			if(err){			
-				sysconfig.isInit = false;
+				sysConfig.isInit = false;
 				walletInfo.resInfo = "needInit";
 				res.send(JSON.stringify(walletInfo));
 				return false;
@@ -161,18 +164,21 @@ router.get("/newallet", function(req, res, next){
 /**
  * 导出所选钱包的信息。
  */
-router.post("/wallet/exportsel", function(req, res, next){
+router.post("/wallet/exportsel", sysConfig.filter, function(req, res, next){
 	var result = {
-		title: sysconfig.title,
+		title: sysConfig.title,
 		from: "exportsel",
 		result: false		
 	};
-	if(!sysconfig.isInit || rpc == null){
+	var userInfo = req.session.userInfo;
+	if(userInfo == null || !userInfo.isInit){
 		result.message = "needinit";
 		res.send(JSON.stringify(result));
 		return false;
 	}
 	var ids = req.body.idsSelected;	
+	var pass = req.body.pass;
+	console.log("password: " + pass);
 	if(ids.trim().length == 0){
 		result.message = "idneeded";
 		res.send(JSON.stringify(result));
@@ -183,28 +189,30 @@ router.post("/wallet/exportsel", function(req, res, next){
 	var id_len = id_arr.length;
 	var todump = [];
 	for(var i = 0, len = id_len; i < len; i ++){		
-		getKeyByAddress(id_arr[i], todump, id_len, res);
+		getKeyByAddress(req, id_arr[i], todump, id_len, res);
 	}		
 });
 
 /**
  * 根据地址获取密钥，成功后调用后续步骤。
  */
-function getKeyByAddress(address, todump, id_len, res){	
+function getKeyByAddress(req, address, todump, id_len, res){	
+	var userInfo = req.session.userInfo;
+	var rpc = new RpcClient(userInfo.config);
 	rpc.dumpPrivKey(address, function(err, ret){
 		if(err){			
-			sysconfig.isInit = false;
+			sysConfig.isInit = false;
 			result.message = "idneeded";
 			res.send(JSON.stringify(result));
 			return false;
-		}			
-		// 先放置假的图片。
+		}
+		
 		var obj = {
 			key : ret.result,
 			addr: address
 		}
-		obj.keyqr = qrimage.imageSync(obj.key, sysconfig.qrconfig);
-		obj.addrqr = qrimage.imageSync(obj.addr, sysconfig.qrconfig);
+		obj.keyqr = qrimage.imageSync(obj.key, sysConfig.QRConfig);
+		obj.addrqr = qrimage.imageSync(obj.addr, sysConfig.QRConfig);
 	
 		todump.push(obj);
 		if(todump.length == id_len){
@@ -216,14 +224,13 @@ function getKeyByAddress(address, todump, id_len, res){
 /**
  * 进行文件生成和导出操作。
  */
-function dealKeyDump(todump, res){	
-	var path = process.cwd() + "/temp/download/";
-	var fileName = sysconfig.getDateStr() +".pdf";
-	
-	var doc = new PDFDocument();
-	// doc.info["Title"] = "Wallet Info";	
+function dealKeyDump(todump, res){		
+	var fileName = tools.getDateStr() +".pdf";
+	res.setHeader("Content-disposition", "attachment; filename=" + fileName);
+	res.setHeader("Content-type", "application/pdf");
 
-	var writableStream = doc.pipe(fs.createWriteStream(path + fileName));	
+	var doc = new PDFDocument();
+	doc.pipe(res);
 	var x = 50; // pdf中的横坐标，即缩进。
 	for(var i = 0, len = todump.length; i < len; i += 2){	
 		if(i != 0){
@@ -233,10 +240,10 @@ function dealKeyDump(todump, res){
 		var info2 = todump[i + 1];
 
 		doc.moveTo(x, 40).lineTo(550, 40).stroke(); // text(sep, x, 40);
-		doc.image(info1.addrqr, x, 60, sysconfig.imagesize);
+		doc.image(info1.addrqr, x, 60, sysConfig.imageSize);
 		doc.text("Address: " + info1.addr, 210, 110);
 
-		doc.image(info1.keyqr, x, 210, sysconfig.imagesize);
+		doc.image(info1.keyqr, x, 210, sysConfig.imageSize);
 		doc.text("Key:" + info1.key, 210, 250);
 		 
 		doc.moveTo(x, 350).lineTo(550, 350).stroke();	
@@ -245,58 +252,36 @@ function dealKeyDump(todump, res){
 			break;
 		}
 
-		doc.image(info2.addrqr, x, 370, sysconfig.imagesize);
+		doc.image(info2.addrqr, x, 370, sysConfig.imageSize);
 		doc.text("Address: " + info2.addr, 210, 420);
 
-		doc.image(info2.keyqr, x, 520, sysconfig.imagesize);
+		doc.image(info2.keyqr, x, 520, sysConfig.imageSize);
 		doc.text("Key:" + info2.key, 210, 560);
 		   
 		doc.moveTo(x, 660).lineTo(550, 660).stroke();		
 	}
 	doc.end();
-
-	writableStream.on("finish", function(){	
-		res.setHeader("Content-disposition", "attachment; filename=" + fileName);
-		res.setHeader("Content-type", "application/pdf");
-		var downstream = fs.createReadStream(path + fileName);
-		downstream.on("data", function(filebody){
-			res.write(filebody);
-		});
-		downstream.on("end", function(){
-			res.end();
-			// 备份成功后删除备份文件。
-			fs.unlink(path + fileName, function(){
-				console.log("已删除备份文件：" + fileName);
-			});				
-		});
-		downstream.on("error", function(err){
-			console.log(err);
-		});
-	});
 }
 
 /**
  * 钱包导出。
  */
-router.post("/backup", function(req, res, next){
-	if(!sysconfig.isInit || rpc == null){
-		res.redirect("/");
-		return true;
-	}	
-	
+router.post("/backup", sysConfig.filter, function(req, res, next){	
 	// 检查并创建temp目录。
 	var path = process.cwd() + "/temp/download";
     if(!fs.existsSync(path)){
 		fs.mkdirSync(path);
 		console.log("创建临时目录：" + path);
 	}
-	var fileName = sysconfig.config.host + "_" + sysconfig.getDateStr() + ".data";
+	var userInfo = req.session.userInfo;
+	var fileName = userInfo.config.host + "_" + tools.getDateStr() + ".data";
 	console.log("备份名称：" + fileName);
 
-	// backupWallet成功备份后返回{result:null, error:null, id:null}。
+	// backupWallet成功备份后返回{result:null, error:null, id:null}。	
+	var rpc = new RpcClient(userInfo.config);
 	rpc.backupWallet(path + fileName, function(err, ret){
 		if(err){			
-			sysconfig.isInit = false;
+			userInfo.isInit = false;
 			res.redirect("/");
 			return false;
 		}		
@@ -330,14 +315,15 @@ router.post("/backup", function(req, res, next){
  */
 router.post("/import", function(req, res, next){
 	var result = {
-		title: sysconfig.title,
+		title: sysConfig.title,
 		from: "import",
 		result: false
 	};
-	if(!sysconfig.isInit || rpc == null){
+	var userInfo = req.session.userInfo;
+	if(userInfo == null || !userInfo.isInit){
 		result.message = "needinit";
 		res.render("result", result);
-		return true;
+		return false;
 	}
 
 	var form = new formidable.IncomingForm();
@@ -355,9 +341,10 @@ router.post("/import", function(req, res, next){
 		}
 		var uploadPath = files.wallet.path;
 		console.log("已上传文件：" + uploadPath);
+		var rpc = new RpcClient(userInfo.config);
 		rpc.importWallet(uploadPath, function(err, ret){
 			if(err){			
-				sysconfig.isInit = false;
+				userInfo.isInit = false;
 				result.message = "importfail";
 				res.render("result", result);
 				return false;

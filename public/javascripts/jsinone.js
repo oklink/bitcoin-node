@@ -57,17 +57,21 @@ function getNewWallet(){
 	});
 }
 
-// 导出所有选中的钱包信息。
-function exportSelected(ids){
-	if(ids.trim.length == 0){
-		return false;
+// 页面初始化或刷新后的动作。
+function init(){
+	var isSelected = $("#exportPassed");
+	if(isSelected.length != 0 && isSelected.get(0).checked){		
+		$("#passLabel").show();
+		$("#passText").show();
+	} else {
+		$("#passLabel").hide();
+		$("#passText").hide();
 	}
-	$.post("/exportSelected", {ids:ids}, function(data){
-		
-	});
 }
 
 $(function(){
+	init();
+
 	// 首页初始化按钮。
 	$("#getInitInfoBtn").click(function(){
 		getInitInfo();
@@ -106,11 +110,32 @@ $(function(){
 		allSel.get(0).checked = flag;
 	});
 
+	// 导出时“加密”复选框的点击事件。
+	$("#exportPassed").click(function(){		
+		if(this.checked){
+			$("#passLabel").show();
+			$("#passText").show();
+		} else {
+			$("#passLabel").hide();
+			$("#passText").hide();
+		}
+	});
+
 	// “导出已选”链接的功能。
 	$("#seledToExport").click(function(){
 		var selected = $("input:checkbox[name='walletIdSel']:checked");
 		if(selected.length == 0){
 			alert("请先选择要导出的钱包！"); return false;
+		}
+		var isSelected = $("#exportPassed").get(0).checked;
+		var passText= $("#passText");
+		if(isSelected){			
+			if($.trim(passText.val()).length == 0){
+				alert("请先输入加密用的密码！"); passText.focus(); return false;
+			}
+			$("#passHidden").val($.trim(passText.val()));
+		} else {
+			$("#passHidden").val("");
 		}
 		var ids = [];
 		$.each(selected, function(i, item){

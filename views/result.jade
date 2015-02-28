@@ -6,8 +6,8 @@ block content
         var message = "#{message}";
         var from = "#{from}";
         
-        if(from == "import"){
-            if(result || result == "true"){
+        if(from == "import"){         
+            if(result == true || result == "true"){                
                 alert("钱包已导入成功！");
                 window.close();                
             } 
