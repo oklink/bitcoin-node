@@ -27,7 +27,9 @@ block content
                         div(style="float: left; width: 80%; text-align: left; ")
                             a(href="#", id="seledToExport", style="margin: 0 20px 0 30px;") 导出已选                    
                             input(type="checkbox", id="exportPassed")
-                            label(for="exportPassed", style="margin: 0 10px 0 5px;") 加密                            
+                            label(for="exportPassed", style="margin: 0 10px 0 2px;") 加密    
+                            input(type="checkbox", id="exportBip38")
+                            label(for="exportBip38", style="margin: 0 10px 0 2px;") BIP38                            
                             label(id="passLabel", style="font-weight: normal; display: none;") 密码（请自行记录）：
                             input(type="password", id="passText", style="display: none;") 
                         b 合计：#{amount}
@@ -35,6 +37,7 @@ block content
         form(name="exportSelWallet", method="post", action="/wallet/exportsel", id="exportSelWallet", target="_blank")
             input(type="hidden", name="idsSelected", id="idsSelected")
             input(type="hidden", name="pass", id="passHidden")
+            input(type="hidden", name="bip38", id="isBip38", value="0")
 
 
 

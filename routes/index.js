@@ -178,7 +178,8 @@ router.post("/wallet/exportsel", sysConfig.filter, function(req, res, next){
 	}
 	var ids = req.body.idsSelected;	
 	var pass = req.body.pass;
-	console.log("password: " + pass);
+	var isBip38 = req.body.bip38;
+
 	if(ids.trim().length == 0){
 		result.message = "idneeded";
 		res.send(JSON.stringify(result));
@@ -187,16 +188,16 @@ router.post("/wallet/exportsel", sysConfig.filter, function(req, res, next){
 
 	var id_arr = ids.split(",");	
 	var id_len = id_arr.length;
-	var todump = [];
+	var todump = [];	
 	for(var i = 0, len = id_len; i < len; i ++){		
-		getKeyByAddress(req, id_arr[i], todump, id_len, res);
+		getKeyByAddress(req, id_arr[i], todump, id_len, pass, isBip38, res);
 	}		
 });
 
 /**
  * 根据地址获取密钥，成功后调用后续步骤。
  */
-function getKeyByAddress(req, address, todump, id_len, res){	
+function getKeyByAddress(req, address, todump, id_len, pass, isBip38, res){	
 	var userInfo = req.session.userInfo;
 	var rpc = new RpcClient(userInfo.config);
 	rpc.dumpPrivKey(address, function(err, ret){
@@ -206,17 +207,29 @@ function getKeyByAddress(req, address, todump, id_len, res){
 			res.send(JSON.stringify(result));
 			return false;
 		}
+
+		var isEncrypt = false;
+		if(pass.length != 0){
+			isEncrypt = true;
+		}
 		
 		var obj = {
 			key : ret.result,
-			addr: address
+			addr: address,
+			isBip38: isBip38
 		}
-		obj.keyqr = qrimage.imageSync(obj.key, sysConfig.QRConfig);
+		if(isEncrypt){
+			obj.encryptedKey = tools.encryptKey(ret.result, address, pass, isBip38),
+			obj.encryptedKeyStr = JSON.stringify(obj.encryptedKey);
+			obj.keyqr = qrimage.imageSync(obj.encryptedKeyStr, sysConfig.QRConfig);			
+		} else {
+			obj.keyqr = qrimage.imageSync(obj.key, sysConfig.QRConfig);
+		}		
 		obj.addrqr = qrimage.imageSync(obj.addr, sysConfig.QRConfig);
 	
 		todump.push(obj);
 		if(todump.length == id_len){
-			dealKeyDump(todump, res);			
+			dealKeyDump(todump, res, isEncrypt);			
 		}
 	});
 }
@@ -224,13 +237,21 @@ function getKeyByAddress(req, address, todump, id_len, res){
 /**
  * 进行文件生成和导出操作。
  */
-function dealKeyDump(todump, res){		
+function dealKeyDump(todump, res, isEncrypt){		
 	var fileName = tools.getDateStr() +".pdf";
 	res.setHeader("Content-disposition", "attachment; filename=" + fileName);
 	res.setHeader("Content-type", "application/pdf");
 
 	var doc = new PDFDocument();
 	doc.pipe(res);
+
+	var keyInfo = "Private Key:";
+	var keyprop = "key";
+	if(isEncrypt){
+		keyInfo = "Encrypted Private Key:";
+		keyprop = "encryptedKeyStr";
+	}
+
 	var x = 50; // pdf中的横坐标，即缩进。
 	for(var i = 0, len = todump.length; i < len; i += 2){	
 		if(i != 0){
@@ -239,12 +260,15 @@ function dealKeyDump(todump, res){
 		var info1 = todump[i];
 		var info2 = todump[i + 1];
 
-		doc.moveTo(x, 40).lineTo(550, 40).stroke(); // text(sep, x, 40);
-		doc.image(info1.addrqr, x, 60, sysConfig.imageSize);
-		doc.text("Address: " + info1.addr, 210, 110);
+		doc.moveTo(x, 40).lineTo(550, 40).stroke();
 
-		doc.image(info1.keyqr, x, 210, sysConfig.imageSize);
-		doc.text("Key:" + info1.key, 210, 250);
+		doc.image(info1.keyqr, x, 60, sysConfig.imageSize);
+		doc.text(keyInfo, 210, 60);
+		doc.text("Data: " + info1[keyprop], 210, 110);
+	
+		doc.image(info1.addrqr, x, 210, sysConfig.imageSize);
+		doc.text("Address:", 210, 210);
+		doc.text("Data: " + info1.addr, 210, 250);
 		 
 		doc.moveTo(x, 350).lineTo(550, 350).stroke();	
 
@@ -252,11 +276,13 @@ function dealKeyDump(todump, res){
 			break;
 		}
 
-		doc.image(info2.addrqr, x, 370, sysConfig.imageSize);
-		doc.text("Address: " + info2.addr, 210, 420);
+		doc.image(info2.keyqr, x, 370, sysConfig.imageSize);
+		doc.text(keyInfo, 210, 370);
+		doc.text("Data: " + info2[keyprop], 210, 420);
 
-		doc.image(info2.keyqr, x, 520, sysConfig.imageSize);
-		doc.text("Key:" + info2.key, 210, 560);
+		doc.image(info2.addrqr, x, 520, sysConfig.imageSize);
+		doc.text("Address:", 210, 520);
+		doc.text("Data: " + info2.addr, 210, 560);
 		   
 		doc.moveTo(x, 660).lineTo(550, 660).stroke();		
 	}

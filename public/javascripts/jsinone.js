@@ -59,8 +59,9 @@ function getNewWallet(){
 
 // 页面初始化或刷新后的动作。
 function init(){
-	var isSelected = $("#exportPassed");
-	if(isSelected.length != 0 && isSelected.get(0).checked){		
+	var isSelected = $("#exportPassed:checked");
+	var isBip38 = $("#exportBip38:checked");		
+	if(isSelected.length != 0 || isBip38.length != 0){
 		$("#passLabel").show();
 		$("#passText").show();
 	} else {
@@ -113,13 +114,26 @@ $(function(){
 	// 导出时“加密”复选框的点击事件。
 	$("#exportPassed").click(function(){		
 		if(this.checked){
+			$("#exportBip38").removeAttr("checked");
 			$("#passLabel").show();
 			$("#passText").show();
 		} else {
 			$("#passLabel").hide();
-			$("#passText").hide();
+			$("#passText").val("").hide();
 		}
 	});
+
+	// 导出时“BIP38”复选框的点击事件。
+	$("#exportBip38").click(function(){		
+		if(this.checked){
+			$("#exportPassed").removeAttr("checked");
+			$("#passLabel").show();
+			$("#passText").show();
+		} else {
+			$("#passLabel").hide();
+			$("#passText").val("").hide();
+		}
+	});	
 
 	// “导出已选”链接的功能。
 	$("#seledToExport").click(function(){
@@ -127,16 +141,26 @@ $(function(){
 		if(selected.length == 0){
 			alert("请先选择要导出的钱包！"); return false;
 		}
-		var isSelected = $("#exportPassed").get(0).checked;
-		var passText= $("#passText");
-		if(isSelected){			
-			if($.trim(passText.val()).length == 0){
+
+		var exportPassed = $("#exportPassed:checked");
+		var exportBip38 = $("#exportBip38:checked");	
+		var passHidden = $.trim($("#passText").val());
+		if(exportPassed.length != 0 || exportBip38.length != 0){			
+			if(passHidden.length == 0){
 				alert("请先输入加密用的密码！"); passText.focus(); return false;
-			}
-			$("#passHidden").val($.trim(passText.val()));
-		} else {
-			$("#passHidden").val("");
+			}	
 		}
+		$("#passHidden").val(passHidden);
+
+		var isBip38 = 0;
+		if(exportBip38.length != 0){
+			if(!confirm("生成BIP38格式耗时较长，确定要选择此项吗？")){
+				return false;
+			}
+			isBip38 = 1;
+		}
+		$("#isBip38").val(isBip38);
+
 		var ids = [];
 		$.each(selected, function(i, item){
 			ids.push(item.value);
